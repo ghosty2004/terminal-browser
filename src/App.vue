@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, reactive, nextTick } from "vue";
+import { ref, reactive, nextTick, onMounted } from "vue";
 import CommandBuilder from "./utils/CommandBuilder";
 import loadCommands from "./definitions/commands";
+import {
+    DEFAULT_USERNAME,
+    DEFAULT_HOSTNAME,
+    DEFAULT_CWD,
+} from "./definitions/defaults";
 
-const defaultUsername = "root";
-const defaultHostname = "localhost";
-const defaultCwd = "~";
-
-const cwd = ref(defaultCwd);
 const inputFields = ref<HTMLInputElement[]>([]);
 
 type SystemLog = { type: "system"; message: string };
@@ -17,7 +17,7 @@ type Log = SystemLog | UserLog;
 const logs = reactive<Log[]>([
     {
         type: "user",
-        cwd: cwd.value,
+        cwd: DEFAULT_CWD,
         input: "",
     },
 ]);
@@ -33,6 +33,17 @@ const printToSystem = (msg: string) => {
     });
 };
 
+const forceFocusToLastInput = (clickedTarget: any = null) => {
+    const isParagraph = clickedTarget?.tagName?.toLowerCase?.() === "p";
+    if (isParagraph) return;
+
+    nextTick(() => {
+        const lastInputField = inputFields.value[inputFields.value.length - 1];
+        if (!lastInputField) return;
+        lastInputField.focus();
+    });
+};
+
 // this will ensure that all commands are loaded
 loadCommands();
 
@@ -42,38 +53,43 @@ CommandBuilder.registerPrintHandler(printToSystem);
 const handleCommandProcess = (input: string) => {
     const lastUserLog = logs[logs.length - 1] as UserLog;
     if (lastUserLog) {
-        lastUserLog.cwd = cwd.value;
+        lastUserLog.cwd = DEFAULT_CWD;
         lastUserLog.input = input;
 
         const [commandName, ...args] = input.split(" ");
         const executed = CommandBuilder.executeCommand(commandName, ...args);
-        if (!executed) printToSystem(`${commandName}: command not found!`);
+        if (!executed && commandName?.length !== 0)
+            printToSystem(`${commandName}: command not found!`);
     }
 
     logs.push({
-        cwd: cwd.value,
+        cwd: DEFAULT_CWD,
         type: "user",
         input: "",
     }) - 1;
 
-    nextTick(() => {
-        const lastInputField = inputFields.value[inputFields.value.length - 1];
-        if (!lastInputField) return;
-        lastInputField.focus();
-    });
+    forceFocusToLastInput();
 };
+
+document.body.addEventListener("click", ({ target }) =>
+    forceFocusToLastInput(target)
+);
+
+onMounted(forceFocusToLastInput);
 </script>
 
 <template>
-    <div v-for="(log, index) in logs" :key="index">
-        <!-- User -->
+    <template v-for="(log, index) in logs" :key="index">
         <div class="user-log" v-if="log.type === 'user'">
-            <p>{{ defaultUsername }}@{{ defaultHostname }}:{{ cwd }}</p>
+            <p>
+                {{ DEFAULT_USERNAME }}@{{ DEFAULT_HOSTNAME }}:{{ DEFAULT_CWD }}
+            </p>
             <input
                 type="text"
                 ref="inputFields"
                 v-model="(logs[index] as UserLog).input"
                 :disabled="index !== logs.length - 1"
+                spellcheck="false"
                 @keydown.enter="
                     handleCommandProcess(
                         ($event.target as HTMLInputElement).value
@@ -81,26 +97,46 @@ const handleCommandProcess = (input: string) => {
                 "
             />
         </div>
-
-        <!-- System -->
         <div class="system-log" v-else>
             <p>{{ log.message }}</p>
         </div>
-    </div>
+    </template>
 </template>
 
-<style scoped>
+<style>
+body {
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #300b25;
+    color: white;
+    font-weight: 600;
+    overflow: hidden;
+}
+
+body,
+input {
+    font-size: 18px;
+    font-family: monospace;
+}
+
 .user-log {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 3px;
     color: green;
 }
 
-.user-log input {
-    background-color: rgb(144, 144, 144);
+p {
+    padding: 2px;
+    margin: 0;
 }
 
-.system-log {
+.user-log input {
+    background-color: transparent;
+    color: white;
+    border: none;
+    outline: none;
 }
 </style>
