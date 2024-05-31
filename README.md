@@ -1,33 +1,21 @@
-# terminal-browser
+# Linux terminal concept
 
-This template should help get you started developing with Vue 3 in Vite.
+<p>This is a simple linux terminal concept made with Vue 3</p>
 
-## Recommended IDE Setup
+## Preview
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+<img src="https://i.imgur.com/BgFCUId.png" />
 
-## Type Support for `.vue` Imports in TS
+## Setup
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+1. make sure you have nodejs installed
+2. execute `npm install`
+3. execute `npm run dev` to preview it in dev server
 
-## Customize configuration
+## Directory structure (in `src` path)
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
+| Directory              | Description                                   |
+| ---------------------- | --------------------------------------------- |
+| `definitions/commands` | The commands                                  |
+| `definitions/defaults` | Some defaults such as username                |
+| `utils`                | Some utility functions such as CommandBuilder |
